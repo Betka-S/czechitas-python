@@ -1,4 +1,4 @@
-import math
+from math import ceil
 from abc import ABC, abstractmethod
 from enum import Enum
 
@@ -11,6 +11,10 @@ class Property(ABC):
     @abstractmethod
     def __init__(self, locality):
         self.locality = locality
+
+    @abstractmethod
+    def calculate_tax(self):
+        pass
 
 class EstateType(Enum):
     LAND = 1
@@ -41,8 +45,8 @@ class Estate(Property):
         }
 
     def calculate_tax(self):
-        base_tax = self.area * self.tax_coefficient[self.estate_type] * self.locality.locality_coefficient
-        return math.ceil(base_tax)
+        tax = self.area * self.tax_coefficient[self.estate_type] * self.locality.locality_coefficient
+        return ceil(tax)
     
     def __str__(self):
         return f"{self.estate_names[self.estate_type]} o rozloze {self.area} metrů čtverečních, lokalita {self.locality.name}, daň {self.calculate_tax()} Kč."
@@ -54,18 +58,20 @@ class Residence(Property):
         self.commercial = commercial
     
     def calculate_tax(self):
+        residence_tax = self.area * self.locality.locality_coefficient * 15
+
         if self.commercial:
-            residence_tax = self.area * self.locality.locality_coefficient * 15 * 2
-        else:
-            residence_tax = self.area * self.locality.locality_coefficient * 15
+            residence_tax = 2 * residence_tax
         
-        return math.ceil(residence_tax)
+        return ceil(residence_tax)
     
     def __str__(self):
+        base_string = f"Nemovitost s podlahovou plochou {self.area} metrů čtverečních, lokalita {self.locality.name}, daň {self.calculate_tax()} Kč"
+
         if self.commercial:
-            return f"Nemovitost s podlahovou plochou {self.area} metrů čtverečních, lokalita {self.locality.name}, daň {self.calculate_tax()} Kč, je využívaná ke komerčním účelům."
+            return base_string + ", je využívaná ke komerčním účelům."
         else:
-            return f"Nemovitost s podlahovou plochou {self.area} metrů čtverečních, lokalita {self.locality.name}, daň {self.calculate_tax()} Kč, není využívaná ke komerčním účelům."
+            return base_string + ", není využívaná ke komerčním účelům."
         
 manetin = Locality("Manětín", 0.8)
 brno = Locality("Brno", 3)
@@ -95,11 +101,7 @@ class TaxReport:
         for property in self.property_list:
             tax += property.calculate_tax()
         
-        return math.ceil(tax)
-
-tax_report = TaxReport("Jan Novák", [pozemek])
-tax_report.property_list.append(dum)
-print(tax_report.calculate_tax())
+        return ceil(tax)
 
 # kontrolní výpočty:
 
@@ -112,3 +114,7 @@ print(tax_report.calculate_tax())
 # print(zkusebni_byt.calculate_tax())
 # zkusebni_byt2 = Residence(lokalita_2, 60, True)
 # print(zkusebni_byt2.calculate_tax())
+
+# tax_report = TaxReport("Jan Novák", [pozemek])
+# tax_report.property_list.append(dum)
+# print(tax_report.calculate_tax())
